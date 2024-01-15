@@ -33,13 +33,6 @@ class LuckFragment : Fragment() {
     @Inject
     lateinit var randomCardProvider: RandomCardProvider
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
-    ): View {
-        _binding = FragmentLuckBinding.inflate(layoutInflater, container, false)
-        return binding.root
-    }
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         initUI()
@@ -51,18 +44,16 @@ class LuckFragment : Fragment() {
     }
 
     private fun preparePrediction() {
-        val luck = randomCardProvider.getLucky()
-        luck?.let { lucks ->
-            val currentPrediction = getString(lucks.text)
-            binding.apply {
-                tvLucky.text = currentPrediction
-                ivLuckyCard.setImageResource(lucks.image)
-                tvShare.setOnClickListener { shareResult(currentPrediction) }
-            }
+        val currentLuck = randomCardProvider.getLucky()
+        currentLuck?.let {luck ->
+            val currentPrediction = getString(luck.text)
+            binding.tvLucky.text = currentPrediction
+            binding.ivLuckyCard.setImageResource(luck.image)
+            binding.tvShare.setOnClickListener { shareResult(currentPrediction) }
         }
     }
 
-    private fun shareResult(prediction: String) {
+    private fun shareResult(prediction:String) {
         val sendIntent: Intent = Intent().apply {
             action = Intent.ACTION_SEND
             putExtra(Intent.EXTRA_TEXT, prediction)
@@ -70,13 +61,15 @@ class LuckFragment : Fragment() {
         }
 
         val shareIntent = Intent.createChooser(sendIntent, null)
-        startActivity(sendIntent)
+        startActivity(shareIntent)
     }
 
     @SuppressLint("ClickableViewAccessibility")
     private fun initListeners() {
-        // binding.ivRoulette.setOnClickListener { spinRoulette() }
-        binding.ivRoulette.setOnTouchListener(object : OnSwipeTouchListener(requireContext()) {
+//        binding.ivRoulette.setOnClickListener { spinRoulette() }
+
+        binding.ivRoulette.setOnTouchListener(object : OnSwipeTouchListener(requireContext()){
+
             override fun onSwipeRight() {
                 spinRoulette()
             }
@@ -87,13 +80,12 @@ class LuckFragment : Fragment() {
         })
     }
 
-
     private fun spinRoulette() {
         val random = Random()
         val degrees = random.nextInt(1440) + 360
+
         val animator =
             ObjectAnimator.ofFloat(binding.ivRoulette, View.ROTATION, 0f, degrees.toFloat())
-
         animator.duration = 2000
         animator.interpolator = DecelerateInterpolator()
         animator.doOnEnd { slideCard() }
@@ -104,35 +96,33 @@ class LuckFragment : Fragment() {
         val slideUpAnimation = AnimationUtils.loadAnimation(requireContext(), R.anim.slide_up)
 
         slideUpAnimation.setAnimationListener(object : Animation.AnimationListener {
-            override fun onAnimationStart(animation: Animation?) {
+            override fun onAnimationStart(p0: Animation?) {
                 binding.reverse.isVisible = true
             }
 
-            override fun onAnimationEnd(animation: Animation?) {
+            override fun onAnimationEnd(p0: Animation?) {
                 growCard()
             }
 
-            override fun onAnimationRepeat(animation: Animation?) {}
+            override fun onAnimationRepeat(p0: Animation?) {}
 
         })
 
         binding.reverse.startAnimation(slideUpAnimation)
-        slideUpAnimation.start()
     }
 
     private fun growCard() {
         val growAnimation = AnimationUtils.loadAnimation(requireContext(), R.anim.grow)
 
-        growAnimation.setAnimationListener(object : Animation.AnimationListener {
-            override fun onAnimationStart(animation: Animation?) {}
+        growAnimation.setAnimationListener(object : Animation.AnimationListener{
+            override fun onAnimationStart(p0: Animation?) {}
 
-            override fun onAnimationEnd(animation: Animation?) {
-
+            override fun onAnimationEnd(p0: Animation?) {
                 binding.reverse.isVisible = false
                 showPremonitionView()
             }
 
-            override fun onAnimationRepeat(animation: Animation?) {}
+            override fun onAnimationRepeat(p0: Animation?) {}
 
         })
 
@@ -146,20 +136,29 @@ class LuckFragment : Fragment() {
         val appearAnimation = AlphaAnimation(0.0f, 1.0f)
         appearAnimation.duration = 1000
 
-        disappearAnimation.setAnimationListener(object : Animation.AnimationListener {
-            override fun onAnimationStart(animation: Animation?) {}
+        disappearAnimation.setAnimationListener(object : Animation.AnimationListener{
+            override fun onAnimationStart(p0: Animation?) {}
 
-            override fun onAnimationEnd(animation: Animation?) {
+            override fun onAnimationEnd(p0: Animation?) {
                 binding.preview.isVisible = false
                 binding.prediction.isVisible = true
             }
 
-            override fun onAnimationRepeat(animation: Animation?) {}
+            override fun onAnimationRepeat(p0: Animation?) {}
 
         })
+
 
         binding.preview.startAnimation(disappearAnimation)
         binding.prediction.startAnimation(appearAnimation)
 
+    }
+
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        _binding = FragmentLuckBinding.inflate(layoutInflater, container, false)
+        return binding.root
     }
 }
