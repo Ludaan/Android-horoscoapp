@@ -33,8 +33,6 @@ class LuckFragment : Fragment() {
     @Inject
     lateinit var randomCardProvider: RandomCardProvider
 
-    private val luckVModel by viewModels<LuckViewModel>()
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
